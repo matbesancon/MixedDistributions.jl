@@ -1,21 +1,12 @@
 module MixedDistributions
 
 import Base: maximum, minimum
-import Statistics: mean
+import Statistics: mean, var
 
 import Distributions
 const Dst = Distributions
 
-export MixedDistribution, MassPoint
-
-"""
-    A mass point in a discrete or mixed distribution is represented by its probability p and position x
-"""
-struct MassPoint
-    p::Float64
-    x::Float64
-end
-# TODO replace p and x vecs with MassPoint
+export MixedDistribution
 
 """
     A mixed continuous-discrete distribution
@@ -59,6 +50,14 @@ function mean(md::MixedDistribution)
     mass_part = sum(md.mass_points.*md.mass_probs)
     cont_part = sum(w * mean(d) for (w,d) in zip(md.cont_weights, md.cont_dists))
     return mass_part + cont_part
+end
+
+function var(md::MixedDistribution)
+    μ = mean(md)
+    μ_discrete  = sum(md.mass_points.*md.mass_probs)
+    σ2d = sum((md.mass_points.-μ_discrete).^2 .* md.mass_probs)
+    cont_part = sum((mean(d)^2 + var(d)) * w for (d, w) in zip(md.cont_dists, md.cont_weights))
+    return cont_part + σ2d - μ^2
 end
 
 function Dst.insupport(md::MixedDistribution, x::Real)

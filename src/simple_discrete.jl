@@ -27,7 +27,7 @@ end
 
 function Dst.pdf(d::SimpleDiscrete{T1,T2}, x::Real) where {T1,T2}
     for (xᵢ , pᵢ) in zip(d.xs,d.ps)
-        xᵢ ≈ x && return pᵢ    
+        xᵢ ≈ x && return pᵢ
     end
     return zero(T2)
 end

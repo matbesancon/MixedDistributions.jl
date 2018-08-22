@@ -16,18 +16,18 @@ end
 maximum(d::SimpleDiscrete) = isempty(d.xs) ? -Inf64 : maximum(d.xs)
 minimum(d::SimpleDiscrete) = isempty(d.xs) ? +Inf64 : minimum(d.xs)
 
-Statistics.mean(d::SimpleDiscrete) = sum(md.mass_points .* md.mass_probs)
+Statistics.mean(d::SimpleDiscrete) = sum(d.xs .* d.ps)
 Statistics.var(d::SimpleDiscrete)  = Statistics.mean(d.xs.^2) - Statistics.mean(d.xs)^2
 
 Dst.insupport(d::SimpleDiscrete, x::Real) = minimum(d) <= x && x <= maximum(d)
 
 function Dst.cdf(d::SimpleDiscrete, x::Real)
-    return sum(p_i for (x_i, p_i) in zip(md.mass_points, md.mass_probs) if x_i <= x)
+    return sum(pᵢ for (xᵢ, pᵢ) in zip(md.mass_points, md.mass_probs) if xᵢ <= x)
 end
 
-function Dst.pdf(d::SimpleDiscrete{T1,T2}, x::Real)
-    for (x\_i,p\_i) in zip(d.xs,d.ps)
-        x\_i \approx x && return p_i    
+function Dst.pdf(d::SimpleDiscrete{T1,T2}, x::Real) where {T1,T2}
+    for (xᵢ , pᵢ) in zip(d.xs,d.ps)
+        xᵢ ≈ x && return pᵢ    
     end
     return zero(T2)
 end

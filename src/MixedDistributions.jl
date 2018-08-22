@@ -36,7 +36,7 @@ function minimum(md::MixedDistribution)
 end
 
 function Dst.ncategories(md::MixedDistribution)
-    return length(mass_probs) + length(cont_dists)
+    return length(md.mass_probs)
 end
 
 function mean(md::MixedDistribution)
@@ -50,18 +50,15 @@ function Dst.insupport(md::MixedDistribution, x::Real)
 end
 
 function Dst.pdf(md::MixedDistribution, x::Real)
-    any(md.mass_points .≈ x) && DomainError("PDF undefined at a mass point")
-    
+    any(md.mass_points .≈ x) && DomainError("PDF undefined at a mass point") 
 end
 
 function Dst.cdf(md::MixedDistribution, x::Real)
-    mass_part = sum(p_i for (x_i, p_i) in zip(md.mass_points, md.mass_probs) if x_i <= x)
-    cont_part = sum(mu_i * Dst.cdf(d_i, x) for (md.cont_dists, md.cont_weights))
+    mass_part = sum(pᵢ for (xᵢ, pᵢ) in zip(md.mass_points, md.mass_probs) if xᵢ <= x)
+    cont_part = sum(μᵢ * Dst.cdf(dᵢ, x) for (dᵢ, μᵢ) in (md.cont_dists, md.cont_weights))
     return mass_part + cont_part
 end
 
-function Dst.components(md::MixedDistribution)
-    return append!
-end
+Dst.ncomponents(md::MixedDistribution) = Dst.ncategories(md) + length(md.cont_dists)
 
 end # module

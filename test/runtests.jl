@@ -42,3 +42,10 @@ end
 	@test mean(mixture) ≈ mean(m1)
 	@test var(mixture) ≈  var(m1)
 end
+
+@testset "Exception behaves like one" begin
+	ex = MixedDistributions.CDFException(Dst.Normal())
+	t = typeof(ex) 
+	@test t <: Exception
+	@test t <: MixedDistributions.CDFException{<:Dst.Normal}
+end

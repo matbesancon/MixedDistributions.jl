@@ -72,18 +72,25 @@ function Statistics.var(md::MixedDistribution)
     return tot_var - μ^2
 end
 
-function Dst.insupport(md::MixedDistribution, x::Real)
+function Dst.insupport(md::MixedDistribution, x)
     return minimum(md) <= x && x <= maximum(md)
 end
 
-function Dst.pdf(md::MixedDistribution, x::Real)
+function Dst.pdf(md::MixedDistribution, x)
     any(md.mass_points .≈ x) && DomainError("PDF undefined at a mass point") 
 end
 
-function Dst.cdf(md::MixedDistribution, x::Real)
-    mass_part = sum(pᵢ for (pᵢ, xᵢ) in zip(md.mass_probs, md.mass_points) if xᵢ <= x)
-    cont_part = sum(μᵢ * Dst.cdf(dᵢ, x) for (dᵢ, μᵢ) in (md.cont_dists, md.cont_weights))
-    return mass_part + cont_part
+function Dst.cdf(md::MixedDistribution, x)
+    cdf_point = 0.0
+    for idx in eachindex(md.mass_probs)
+        if md.mass_points[idx] <= x
+            cdf_point += md.mass_probs[idx]
+        end
+    end
+    for idx in eachindex(md.cont_dists)
+        cdf_point += md.cont_weights[idx] * Dst.cdf(md.cont_dists[idx], x)
+    end
+    return cdf_point
 end
 
 """

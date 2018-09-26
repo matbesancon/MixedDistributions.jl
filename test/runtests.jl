@@ -40,12 +40,25 @@ end
 @testset "Homogeneous continuous behave like MixtureModel" begin
 	mixture = Dst.MixtureModel([u1,u2],[0.4,0.6])
 	@test mean(mixture) ≈ mean(m1)
-	@test var(mixture) ≈  var(m1)
+	@test var(mixture)  ≈ var(m1)
 end
 
 @testset "Exception behaves like one" begin
 	ex = MixedDistributions.CDFException(Dst.Normal())
-	t = typeof(ex) 
+	t = typeof(ex)
 	@test t <: Exception
 	@test t <: MixedDistributions.CDFException{<:Dst.Normal}
+end
+
+@testset "Non parametric peak finder" begin
+    xs = append!(
+                 [5.0 + (rand()-0.5)/15.0 for _ in 1:20],
+                 0.0:0.05:10.0
+    )
+    (mass_points, _) = MixedDistributions.find_peaks(xs; threshold = 0.095, maxsupport = 0.02)
+    @test length(mass_points) == 1
+	n = mass_points[1].p * length(xs)
+    @test 21.0 <= n
+    @test n <= 30.0
+    @test abs(mass_points[1].x - 5.0) <= 0.02
 end

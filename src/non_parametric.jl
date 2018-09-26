@@ -14,20 +14,20 @@ function find_peaks(xs::V; threshold = 0.1, maxsupport = 0.02) where {V<:Abstrac
     mass_probs  = Float64[]
     minval, maxval = extrema(xs)
     xcdf = ecdf(xs)
-    Δ = maxsupport * (maxval - minval) / 2
+    Δ = maxsupport * (maxval - minval)
     mass_points = MassPoint[]
     mass_idxs   = BitSet([])
     for idx in eachindex(xs)
         if idx ∉ mass_idxs
-            mass_xs = [jdx for jdx in eachindex(xs) if abs(xs[jdx]-xs[idx]) <= Δ]
-            relweight = length(mass_xs) / length(xs)
+            close_idxs = [jdx for jdx in eachindex(xs) if abs(xs[jdx]-xs[idx]) <= Δ]
+            relweight = length(close_idxs) / length(xs)
             if relweight >= threshold
-                union!(mass_idxs, mass_xs)
-                push!(mass_points,MassPoint(mean(mass_xs), relweight))
+                union!(mass_idxs, close_idxs)
+                push!(mass_points,MassPoint(mean(xs[jdx] for jdx in close_idxs), relweight))
             end
         end
     end
-    Pair(mass_points, mass_idxs)
+    return (mass_points, mass_idxs)
 end
 
 """

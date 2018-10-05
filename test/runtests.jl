@@ -40,7 +40,7 @@ end
 @testset "Homogeneous continuous behave like MixtureModel" begin
 	mixture = Dst.MixtureModel([u1,u2],[0.4,0.6])
 	@test mean(mixture) ≈ mean(m1)
-	@test var(mixture) ≈  var(m1)
+	@test var(mixture)  ≈  var(m1)
 end
 
 @testset "Exception behaves like one" begin
@@ -48,4 +48,11 @@ end
 	t = typeof(ex) 
 	@test t <: Exception
 	@test t <: MixedDistributions.CDFException{<:Dst.Normal}
+end
+
+@testset "Partial expectancy" begin
+	unif = MixedDistribution(Float64[],Float64[],[1.0], [u1])
+	@test MixedDistributions.partial_expectancy(unif; dx = 0.0001) ≈ mean(unif)
+	@test abs(MixedDistributions.partial_expectancy(m) - mean(m)) <= 0.02 * mean(m)
+	@test abs(MixedDistributions.partial_expectancy(m1) - mean(m1)) <= 0.02 * mean(m1)
 end

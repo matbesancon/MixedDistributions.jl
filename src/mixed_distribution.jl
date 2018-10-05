@@ -96,6 +96,54 @@ Dst.probs(md::MixedDistribution) = vcat(md.mass_probs, md.cont_weights)
 Base.rand(rng::AbstractRNG, md::MixedDistribution) = ordered_rand(md, rand(rng))
 
 """
+Integration of function including Dirac peaks
+∫x⋅f(x)dx
+Uses the trapezoid method with given step dx
+"""
+function partial_expectancy(md::MixedDistribution, xlow = minimum(md), xhigh = maximum(md); dx = min((xhigh - xlow) * 0.001, 0.01))
+    # integrator = sum(
+    #     md.mass_probs[idx] * md.mass_points[idx] for idx in eachindex(md.mass_points)
+    #     if md.mass_points[idx] >= xlow && md.mass_points[idx] <= xhigh
+    # )
+    xhigh > xlow || throw(ArgumentError("xlow = $xlow greater than xhigh = $xhigh"))
+    disc_idx = 1
+    while disc_idx <= length(md.mass_points) && md.mass_points[disc_idx] < xlow
+        disc_idx += 1
+    end
+    still_mass = disc_idx <= length(md.mass_points) && md.mass_points[disc_idx] <= xhigh
+    println("still_mass = $still_mass")
+    x = xlow
+    integrator = 0.0
+    while x <= xhigh
+        δ = min(dx, xhigh - x)
+        # check if mass point in chunk
+        if still_mass && md.mass_points[disc_idx] <= x + δ
+            integrator += md.mass_points[disc_idx] * md.mass_probs[disc_idx]
+            disc_idx += 1
+            if disc_idx > length(md.mass_points) || md.mass_probs[disc_idx] > xhigh
+                still_mass = false
+            end
+        end
+        # add continuous chunk
+        for (d,p) in zip(md.cont_dists,md.cont_weights)
+            if Dst.insupport(d, x) && Dst.insupport(d, x + δ)
+                integrator += p * 0.5 * δ * (x + δ*0.5) * (Dst.pdf(d,x) + Dst.pdf(d,x+δ))
+            end
+        end
+        x += dx
+    end
+    return integrator
+end
+
+"""
+Exception used when Cumulated Distribution Function does not integrate to 1 in a computation  
+"""
+struct CDFException{D<:Dst.Distribution} <: Exception
+	d::D
+	CDFException(d::D) where {D<:Dst.Distribution} = new{D}(d) 
+end
+
+"""
 	Ordered_rand returns the quantity corresponding to
 	an already-generated random number
 """
@@ -118,12 +166,4 @@ function ordered_rand(md::MixedDistribution, r)
 	end
 	# all points reached beforehand
 	throw(CDFException(md))
-end
-
-"""
-	Exception used when Cumulated Distribution Function does not integrate to 1 in a computation  
-"""
-struct CDFException{D<:Dst.Distribution} <: Exception
-	d::D
-	CDFException(d::D) where {D<:Dst.Distribution} = new{D}(d) 
 end

@@ -13,5 +13,6 @@ import RecipesBase
 export MixedDistribution
 
 include("mixed_distribution.jl")
+include("plot.jl")
 
 end # module

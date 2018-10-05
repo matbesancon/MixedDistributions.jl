@@ -2,11 +2,13 @@ module MixedDistributions
 
 import Base: maximum, minimum, rand
 import Statistics
-using Statistics: mean, var
+using Statistics: mean, var, std
 using Random: AbstractRNG
 
 import Distributions
 const Dst = Distributions
+
+import RecipesBase
 
 export MixedDistribution
 

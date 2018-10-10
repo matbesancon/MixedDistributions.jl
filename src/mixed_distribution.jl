@@ -95,12 +95,14 @@ Dst.probs(md::MixedDistribution) = vcat(md.mass_probs, md.cont_weights)
 
 Base.rand(rng::AbstractRNG, md::MixedDistribution) = ordered_rand(md, rand(rng))
 
+Base.rand(md::MixedDistribution) = rand(Random.GLOBAL_RNG, md)
+
 """
 Integration of function including Dirac peaks
 ∫x⋅f(x)dx
 Uses the trapezoid method with given step dx
 """
-function partial_expectancy(md::MixedDistribution, xlow = minimum(md), xhigh = maximum(md); dx = min((xhigh - xlow) * 0.001, 0.01))
+function partial_expectancy(md::MixedDistribution; xlow = minimum(md), xhigh = maximum(md), dx = min((xhigh - xlow) * 0.001, 0.01))
     # integrator = sum(
     #     md.mass_probs[idx] * md.mass_points[idx] for idx in eachindex(md.mass_points)
     #     if md.mass_points[idx] >= xlow && md.mass_points[idx] <= xhigh
@@ -111,7 +113,6 @@ function partial_expectancy(md::MixedDistribution, xlow = minimum(md), xhigh = m
         disc_idx += 1
     end
     still_mass = disc_idx <= length(md.mass_points) && md.mass_points[disc_idx] <= xhigh
-    println("still_mass = $still_mass")
     x = xlow
     integrator = 0.0
     while x <= xhigh

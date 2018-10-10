@@ -30,5 +30,5 @@ function plot_cdf(md::MixedDistribution, xlow, xhigh; shallow = false)
     end
     sort!(xaxis)
     cdf = x -> Dst.cdf(md, x)
-    return Plots.plot(xaxis, cdf.(xaxis))
+    return RecipesBase.plot(xaxis, cdf.(xaxis))
 end

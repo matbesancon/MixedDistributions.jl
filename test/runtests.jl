@@ -50,9 +50,27 @@ end
 	@test t <: MixedDistributions.CDFException{<:Dst.Normal}
 end
 
-@testset "Partial expectancy" begin
+@testset "Simple partial expectancy" begin
 	unif = MixedDistribution(Float64[],Float64[],[1.0], [u1])
 	@test MixedDistributions.partial_expectancy(unif; dx = 0.0001) ≈ mean(unif)
 	@test abs(MixedDistributions.partial_expectancy(m) - mean(m)) <= 0.02 * mean(m)
 	@test abs(MixedDistributions.partial_expectancy(m1) - mean(m1)) <= 0.02 * mean(m1)
+	ndst = Dst.Normal(1.5, 0.6)
+	normal_mass = MixedDistribution([0.25], [1.5], [0.75], [ndst])
+	@test mean(normal_mass) ≈ mean(ndst) 
 end
+
+@testset "Interval partial expectancy" begin
+	md = MixedDistribution([0.5],[0.5],[0.5], [u1])
+	@test MixedDistributions.partial_expectancy(md, dx = 0.0001) ≈ mean(md)
+	for δ in [0.01,0.05,0.06,0.1,0.45]
+		(intervals, ys) = MixedDistributions.partial_expectancy(md, [0.5-δ, 0.5+δ], dx = 0.0001)
+		@test length(ys) == 1
+		@test length(intervals) == 1
+		(low, high) = intervals[1]
+		@test low ≈ 0.5 - δ
+		@test high ≈ 0.5 + δ
+		@test ys[1] ≈ (δ + 0.5) * 0.5
+	end
+end
+

@@ -133,6 +133,18 @@ function partial_expectancy(md::MixedDistribution; xlow = minimum(md), xhigh = m
 end
 
 """
+Computing integral of function including Dirac peaks in intervals between eval_points
+"""
+function partial_expectancy(md::MixedDistribution, eval_points::V; dx = min((xhigh - xlow) * 0.05, 0.01)) where {V<:AbstractVector{<:Real}}
+    intervals = begin
+        sorted_eval = sort(eval_points)
+        collect(zip(sorted_eval[1:end-1], sorted_eval[2:end]))
+    end
+    ys = [partial_expectancy(md, xlow = xl, xhigh = xh, dx = dx) for (xl,xh) in intervals]
+    (intervals, ys)
+end
+
+"""
 Exception used when Cumulated Distribution Function does not integrate to 1 in a computation  
 """
 struct CDFException{D<:Dst.Distribution} <: Exception

@@ -102,11 +102,7 @@ Integration of function including Dirac peaks
 ∫x⋅f(x)dx
 Uses the trapezoid method with given step dx
 """
-function partial_expectancy(md::MixedDistribution; xlow = minimum(md), xhigh = maximum(md), dx = min((xhigh - xlow) * 0.001, 0.01))
-    # integrator = sum(
-    #     md.mass_probs[idx] * md.mass_points[idx] for idx in eachindex(md.mass_points)
-    #     if md.mass_points[idx] >= xlow && md.mass_points[idx] <= xhigh
-    # )
+function partial_expectancy(md::MixedDistribution; xlow = minimum(md), xhigh = maximum(md), dx = min((xhigh - xlow) * 0.05, 0.01))
     xhigh > xlow || throw(ArgumentError("xlow = $xlow greater than xhigh = $xhigh"))
     disc_idx = 1
     while disc_idx <= length(md.mass_points) && md.mass_points[disc_idx] < xlow
@@ -126,7 +122,7 @@ function partial_expectancy(md::MixedDistribution; xlow = minimum(md), xhigh = m
             end
         end
         # add continuous chunk
-        for (d,p) in zip(md.cont_dists,md.cont_weights)
+        for (d,p) in zip(md.cont_dists, md.cont_weights)
             if Dst.insupport(d, x) && Dst.insupport(d, x + δ)
                 integrator += p * 0.5 * δ * (x + δ*0.5) * (Dst.pdf(d,x) + Dst.pdf(d,x+δ))
             end
